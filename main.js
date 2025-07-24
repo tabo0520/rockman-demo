@@ -4,6 +4,8 @@ import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { detectEmotion, setExpression } from './emotion.js';
 
 let currentVrm = null;
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
 
 // Three.js 初期化
 const renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -57,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('input');
   const messages = document.getElementById('messages');
 
-  const OPENAI_API_KEY = 'ここにAPIキーです！';
+  const OPENAI_API_KEY = apiKey;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
