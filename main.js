@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('input');
   const messages = document.getElementById('messages');
 
-  const OPENAI_API_KEY = 'ここにAPIキー';
+  const OPENAI_API_KEY = 'ここにAPIキーです！';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
