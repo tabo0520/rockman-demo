@@ -31,6 +31,10 @@ export function loadVRMModel(path, scene) {
         VRMUtils.removeUnnecessaryVertices(gltf.scene);
 
         const vrm = gltf.userData.vrm;
+
+        // ★ 反転対処
+        vrm.scene.rotation.y = Math.PI;
+
         scene.add(vrm.scene);
         resolve(vrm);
       },
@@ -39,6 +43,7 @@ export function loadVRMModel(path, scene) {
     );
   });
 }
+
 
 export function startRenderLoop(scene, camera, renderer) {
   function animate() {

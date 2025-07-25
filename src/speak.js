@@ -1,8 +1,7 @@
-// speak.js
 export async function speak(text) {
-  const apiKey = 'YOUR_API_KEY'; // ← ここに取得済みAPIキーを貼る
-  const voiceId = '21m00Tcm4TlvDq8ikWAM'; // ElevenLabsのデフォルト音声（例：Rachel）
-  
+  const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY; // ← ここを修正済み
+  const voiceId = '21m00Tcm4TlvDq8ikWAM'; // 任意の音声（例: Rachel）
+
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: {
@@ -12,7 +11,7 @@ export async function speak(text) {
     },
     body: JSON.stringify({
       text: text,
-      model_id: 'eleven_multilingual_v2', // 日本語対応モデル
+      model_id: 'eleven_multilingual_v2',
       voice_settings: {
         stability: 0.5,
         similarity_boost: 0.8

@@ -2,66 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ロックマンEXEチャット</title>
-  <style>
-    body {
-      background-color: #000;
-      color: #0ff;
-      font-family: monospace;
-      margin: 0;
-      padding: 20px;
-    }
-    #vrm-container {
-      width: 100%;
-      height: 500px;
-      border: 1px solid #0ff;
-      margin-bottom: 20px;
-    }
-    #messages {
-      height: 200px;
-      overflow-y: auto;
-      background: #111;
-      padding: 10px;
-      border: 1px solid #0ff;
-      margin-bottom: 10px;
-    }
-    .message {
-      margin: 5px 0;
-    }
-    .user {
-      color: #0f0;
-    }
-    .bot {
-      color: #0ff;
-    }
-    #input-form {
-      display: flex;
-    }
-    #input {
-      flex: 1;
-      padding: 10px;
-      font-size: 1em;
-    }
-    #send {
-      padding: 10px 20px;
-      font-size: 1em;
-      background: #0ff;
-      color: #000;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rockman.EXE デモ</title>
 </head>
 <body>
-  <div id="vrm-container"></div>
+  <!-- VRM表示領域 -->
+  <div id="vrm-container" style="width: 100%; height: 500px;"></div>
 
-  <div id="messages"></div>
+  <!-- ユーザー入力 -->
+  <div style="margin-top: 1em;">
+    <input type="text" id="user-input" placeholder="メッセージを入力..." />
+    <button id="send-button">送信</button>
+  </div>
 
-  <form id="input-form">
-    <input id="input" type="text" placeholder="メッセージを入力..." autocomplete="off" />
-    <button id="send" type="submit">送信</button>
-  </form>
+  <!-- 応答表示 -->
+  <div id="reply-output" style="margin-top: 1em; white-space: pre-line;"></div>
 
-  <script type="module" src="/main.js"></script>
+  <!-- メインスクリプト -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

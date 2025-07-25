@@ -9,7 +9,7 @@ const { scene, camera, renderer } = initThreeScene();
 startRenderLoop(scene, camera, renderer);
 
 // === VRMアバター読み込み ===
-loadVRMModel('./models/rockman.vrm', scene)
+loadVRMModel('/avatar.vrm', scene)
   .then((vrm) => {
     currentVrm = vrm;
   })
