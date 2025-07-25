@@ -1,52 +1,56 @@
 import { startLipSync, stopLipSync } from './lipSync.js';
 
-const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
-const VOICE_ID = import.meta.env.VITE_ELEVENLABS_VOICE_ID;
-
-const audioContext = new AudioContext();
-
 export async function speak(text, vrm) {
-  console.log('[speak] 開始');
+  console.log('[speak] VOICEVOX開始');
 
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+  const audioContext = new AudioContext();
+
+  // 話者ID（1: 四国めたん、3: ずんだもん）
+  const speakerId = 1;
+
+  // ① audio_query 作成
+  const queryRes = await fetch(`http://127.0.0.1:50021/audio_query?text=${encodeURIComponent(text)}&speaker=${speakerId}`, {
     method: 'POST',
-    headers: {
-      'xi-api-key': ELEVENLABS_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text: text,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: {
-        stability: 0.3,
-        similarity_boost: 0.75,
-      },
-    }),
   });
 
-  const arrayBuffer = await response.arrayBuffer();
+  if (!queryRes.ok) {
+    console.error('[VOICEVOX] audio_query失敗');
+    return;
+  }
+
+  const query = await queryRes.json();
+
+  // ② 音声合成
+  const synthRes = await fetch(`http://127.0.0.1:50021/synthesis?speaker=${speakerId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(query),
+  });
+
+  if (!synthRes.ok) {
+    console.error('[VOICEVOX] synthesis失敗');
+    return;
+  }
+
+  const arrayBuffer = await synthRes.arrayBuffer();
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
   const source = audioContext.createBufferSource();
   source.buffer = audioBuffer;
-  source.playbackRate.value = 0.85;
+  source.playbackRate.value = 1.0;
 
-  const gainNode = audioContext.createGain();
-  const analyserNode = audioContext.createAnalyser();
-  analyserNode.fftSize = 2048;
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
 
-  source.connect(gainNode);
-  gainNode.connect(analyserNode);
-  analyserNode.connect(audioContext.destination);
+  source.connect(analyser);
+  analyser.connect(audioContext.destination);
 
-  // 🔁 終了時にリップシンク停止
-  source.onended = () => {
-    stopLipSync(); // ← これが口閉じなどを行う
-    console.log('[speak] 再生終了');
-  };
-
+  // 音声再生・リップシンク開始
   source.start();
-  startLipSync(analyserNode, vrm);
+  startLipSync(analyser, vrm, audioBuffer.duration);
 
-  console.log('[speak] 再生開始 & リップシンク開始');
+  source.onended = () => {
+    stopLipSync();
+    console.log('[speak] VOICEVOX再生終了');
+  };
 }

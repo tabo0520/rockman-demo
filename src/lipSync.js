@@ -20,7 +20,8 @@ export function startLipSync(analyser, vrm) {
     if (!isLipSyncActive) return;
 
     analyser.getByteFrequencyData(dataArray);
-    const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 256;
+    let volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 256;
+    volume = Math.min(Math.pow(volume * 10.0, 1.5), 1.0);
 
     if (vrm?.expressionManager) {
       const randomPhoneme = phonemes[Math.floor(Math.random() * phonemes.length)];
