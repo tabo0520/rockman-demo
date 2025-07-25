@@ -2,8 +2,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import { applyIdleMotion } from './idleMotion.js';
+import { applyPose } from './poseController.js'; // ← 全身姿勢適用用（毎フレーム呼び出し）
 
-let currentVrm = null; // ← ここでモジュール内保持
+let currentVrm = null;
 
 export function initThreeScene() {
   const scene = new THREE.Scene();
@@ -36,7 +38,7 @@ export function loadVRMModel(path, scene) {
         vrm.scene.rotation.y = Math.PI;
 
         scene.add(vrm.scene);
-        currentVrm = vrm; // ← ここで格納
+        currentVrm = vrm;
 
         resolve(vrm);
       },
@@ -56,7 +58,9 @@ export function startRenderLoop(scene, camera, renderer) {
     const deltaTime = (currentTime - oldTime) / 1000;
 
     if (currentVrm) {
-      currentVrm.update(deltaTime); // ← ここが重要！
+      currentVrm.update(deltaTime);
+      applyPose(currentVrm); // ← 姿勢を毎フレーム維持してT字回避
+      applyIdleMotion(currentVrm, currentTime); // ← 揺れなど自然動作も維持
     }
 
     renderer.render(scene, camera);

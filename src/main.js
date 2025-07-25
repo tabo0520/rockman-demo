@@ -1,5 +1,6 @@
 import { initThreeScene, loadVRMModel, startRenderLoop } from './avatar.js';
 import { getChatGPTReply } from './chatgpt.js';
+import { startSpeechRecognition } from './speechInput.js'; // ← 新規追加
 
 const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 let currentVrm = null;
@@ -18,19 +19,30 @@ loadVRMModel('/avatar.vrm', scene)
     currentVrm = vrm;
     console.log("VRM expressionManager:", currentVrm?.expressionManager);
 
-    // ✅ ボタン複製してイベント全削除
+    // ✅ send-button再設定
     const cleanButton = originalButton.cloneNode(true);
     originalButton.replaceWith(cleanButton);
-
     cleanButton.disabled = false;
 
-    // ✅ イベント登録（必ず1回だけ）
+    // ✅ テキスト送信イベント
     cleanButton.addEventListener('click', async () => {
       const input = document.getElementById('user-input').value;
       if (!input || !currentVrm) return;
 
       const reply = await getChatGPTReply(input, apiKey, currentVrm);
       document.getElementById('reply-output').textContent = reply;
+    });
+
+    // ✅ 音声入力ボタンイベント
+    const micButton = document.getElementById('mic-button');
+    micButton.addEventListener('click', () => {
+      startSpeechRecognition(async (recognizedText) => {
+        document.getElementById('user-input').value = recognizedText;
+        if (!recognizedText || !currentVrm) return;
+
+        const reply = await getChatGPTReply(recognizedText, apiKey, currentVrm);
+        document.getElementById('reply-output').textContent = reply;
+      });
     });
   })
   .catch((error) => {
