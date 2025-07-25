@@ -1,7 +1,7 @@
 import { speak } from './speak.js';
 
 // ChatGPTへのメッセージ送信＆応答取得
-export async function getChatGPTReply(userMessage, apiKey) {
+export async function getChatGPTReply(userMessage, apiKey, vrm) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -19,6 +19,7 @@ export async function getChatGPTReply(userMessage, apiKey) {
 
   console.log('ChatGPT:', reply);
 
-  speak(reply); // ← 音声再生
-  return reply; // ← 必要なら画面表示にも使える
+  speak(reply, vrm); // ← VRMをちゃんと渡す！
+
+  return reply;
 }

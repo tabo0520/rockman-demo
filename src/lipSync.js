@@ -1,10 +1,7 @@
 // lipSync.js
 
-/**
- * VRMアバターに対して、音声に連動したリップシンクを実行する
- * @param {AudioBuffer} audioBuffer - 再生する音声バッファ
- * @param {VRM} vrm - 表情を制御する対象のVRMアバター
- */
+const phonemes = ['aa', 'ih', 'ou', 'ee', 'oh'];
+
 export function startLipSync(audioBuffer, vrm) {
   const audioContext = new AudioContext();
   const source = audioContext.createBufferSource();
@@ -23,19 +20,29 @@ export function startLipSync(audioBuffer, vrm) {
 
   function animateLipSync() {
     analyser.getByteFrequencyData(dataArray);
-    const volume = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length / 256;
+    const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 256;
 
     if (vrm && vrm.expressionManager) {
-      vrm.expressionManager.setValue('aa', volume); // 単純な開口のみ
+      // ランダムな音素を1つ選択して動かす
+      const randomPhoneme = phonemes[Math.floor(Math.random() * phonemes.length)];
+      phonemes.forEach(p => {
+        const value = (p === randomPhoneme) ? volume : 0;
+        vrm.expressionManager.setValue(p, value);
+      });
+      
+      console.log("Setting phoneme:", randomPhoneme, "value:", volume.toFixed(2));
+
     }
 
     if (audioContext.currentTime < source.buffer.duration) {
       requestAnimationFrame(animateLipSync);
     } else {
-      if (vrm && vrm.expressionManager) {
-        vrm.expressionManager.setValue('aa', 0); // 閉口
-      }
+      // 終了時はすべてリセット
+      phonemes.forEach(p => {
+        vrm.expressionManager.setValue(p, 0);
+      });
     }
+
   }
 
   animateLipSync();

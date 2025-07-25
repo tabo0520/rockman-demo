@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 
+let currentVrm = null; // ← ここでモジュール内保持
+
 export function initThreeScene() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, window.innerWidth / 500, 0.1, 1000);
@@ -31,11 +33,11 @@ export function loadVRMModel(path, scene) {
         VRMUtils.removeUnnecessaryVertices(gltf.scene);
 
         const vrm = gltf.userData.vrm;
-
-        // ★ 反転対処
         vrm.scene.rotation.y = Math.PI;
 
         scene.add(vrm.scene);
+        currentVrm = vrm; // ← ここで格納
+
         resolve(vrm);
       },
       undefined,
@@ -44,11 +46,22 @@ export function loadVRMModel(path, scene) {
   });
 }
 
-
 export function startRenderLoop(scene, camera, renderer) {
+  let oldTime = performance.now();
+
   function animate() {
     requestAnimationFrame(animate);
+
+    const currentTime = performance.now();
+    const deltaTime = (currentTime - oldTime) / 1000;
+
+    if (currentVrm) {
+      currentVrm.update(deltaTime); // ← ここが重要！
+    }
+
     renderer.render(scene, camera);
+    oldTime = currentTime;
   }
+
   animate();
 }
