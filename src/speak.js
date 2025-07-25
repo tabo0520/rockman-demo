@@ -1,31 +1,43 @@
-export async function speak(text) {
-  const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY; // ← ここを修正済み
-  const voiceId = '21m00Tcm4TlvDq8ikWAM'; // 任意の音声（例: Rachel）
+// speak.js
 
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+import { startLipSync } from './lipSync.js';
+
+const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
+const VOICE_ID = import.meta.env.VITE_ELEVENLABS_VOICE_ID; // .envで設定
+
+/**
+ * テキストを読み上げ、VRMとリップシンクを連動させる
+ * @param {string} text - 読み上げるテキスト
+ * @param {VRM} vrm - リップシンク対象のVRMアバター
+ */
+export async function speak(text, vrm) {
+  const audioContext = new AudioContext();
+
+  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
     method: 'POST',
     headers: {
-      'xi-api-key': apiKey,
+      'xi-api-key': ELEVENLABS_API_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'audio/mpeg'
     },
     body: JSON.stringify({
       text: text,
-      model_id: 'eleven_multilingual_v2',
+      model_id: 'eleven_multilingual_v2', // ← ここ
       voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.8
-      }
-    })
+        stability: 0.3,
+        similarity_boost: 0.75,
+      },
+    }),
+
   });
 
-  if (!response.ok) {
-    console.error('TTS API error:', response.statusText);
-    return;
-  }
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-  const audioBlob = await response.blob();
-  const audioUrl = URL.createObjectURL(audioBlob);
-  const audio = new Audio(audioUrl);
-  audio.play();
+  const source = audioContext.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(audioContext.destination);
+  source.start();
+
+  // VRMの口パク開始
+  startLipSync(audioBuffer, vrm);
 }
