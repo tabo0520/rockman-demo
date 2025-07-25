@@ -1,10 +1,12 @@
-import { startLipSync } from './lipSync.js';
+import { startLipSync, stopLipSync } from './lipSync.js';
 
 const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 const VOICE_ID = import.meta.env.VITE_ELEVENLABS_VOICE_ID;
 
+const audioContext = new AudioContext();
+
 export async function speak(text, vrm) {
-  const audioContext = new AudioContext();
+  console.log('[speak] 開始');
 
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
     method: 'POST',
@@ -27,13 +29,24 @@ export async function speak(text, vrm) {
 
   const source = audioContext.createBufferSource();
   source.buffer = audioBuffer;
-  source.connect(audioContext.destination);
-  source.start();
+  source.playbackRate.value = 0.85;
 
-  // ✅ ここで null チェック追加
-  if (vrm) {
-    startLipSync(audioBuffer, vrm);
-  } else {
-    console.warn("VRMが未定義のまま startLipSync が呼ばれました");
-  }
+  const gainNode = audioContext.createGain();
+  const analyserNode = audioContext.createAnalyser();
+  analyserNode.fftSize = 2048;
+
+  source.connect(gainNode);
+  gainNode.connect(analyserNode);
+  analyserNode.connect(audioContext.destination);
+
+  // 🔁 終了時にリップシンク停止
+  source.onended = () => {
+    stopLipSync(); // ← これが口閉じなどを行う
+    console.log('[speak] 再生終了');
+  };
+
+  source.start();
+  startLipSync(analyserNode, vrm);
+
+  console.log('[speak] 再生開始 & リップシンク開始');
 }
